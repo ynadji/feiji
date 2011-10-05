@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 #
 # Chinese IRC botttt.
+# Based heavily off of http://www.habnabit.org/twistedex.html
 #
 # Author: Yacin Nadji <yacin@gatech.edu>
 #

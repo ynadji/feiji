@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf8 -*-
 #
 # Chinese IRC botttt.
 #
@@ -12,10 +13,15 @@ from twisted.python import log
 from twisted.words.protocols import irc
 from twisted.web.client import getPage
 from twisted.application import internet, service
+from cjklib.cjknife import CharacterInfo
+from cjklib.characterlookup import CharacterLookup
+
 HOST, PORT = 'irc.synirc.net', 6667
 
-class MyFirstIRCProtocol(irc.IRCClient):
+class FeiJi(irc.IRCClient):
     nickname = 'feiji'
+    char_info = CharacterInfo()
+    char_lookup = CharacterLookup('C')
 
     def signedOn(self):
         # This is called once the server has acknowledged that we sent
@@ -63,9 +69,7 @@ class MyFirstIRCProtocol(irc.IRCClient):
     def _show_error(self, failure):
         return failure.getErrorMessage()
 
-    def command_ping(self, rest):
-        return 'Pong.'
-
+    # Keep this in case you want to do deferred calls.
     def command_saylater(self, rest):
         when, sep, msg = rest.partition(' ')
         when = int(when)
@@ -77,35 +81,43 @@ class MyFirstIRCProtocol(irc.IRCClient):
         # maybeDeferred in privmsg.
         return d
 
-    def command_title(self, url):
-        d = getPage(url)
-        # Another example of using Deferreds. twisted.web.client.getPage returns
-        # a Deferred which is called back when the URL requested has been
-        # downloaded. We add a callback to the chain which will parse the page
-        # and extract only the title. If we just returned the deferred instead,
-        # the function would still work, but the reply would be the entire
-        # contents of the page.
-        # After that, we add a callback that will extract the title
-        # from the parsed tree lxml returns
-        d.addCallback(self._parse_pagetitle, url)
-        return d
+    def _dict_lookup(self, s):
+        return self.char_info.searchDictionary(s.decode('utf8'), 'GR')
 
-    def _parse_pagetitle(self, page_contents, url):
-        # Parses the page into a tree of elements:
-        pagetree = lxml.html.fromstring(page_contents)
-        # Extracts the title text from the lxml document using xpath
-        title = u' '.join(pagetree.xpath('//title/text()')).strip()
-        # Since lxml gives you unicode and unicode data must be encoded
-        # to send over the wire, we have to encode the title. Sadly IRC predates
-        # unicode, so there's no formal way of specifying the encoding of data
-        # transmitted over IRC. UTF-8 is our best bet, and what most people use.
-        title = title.encode('utf-8')
-        # Since we're returning this value from a callback, it will be passed in
-        # to the next callback in the chain (self._send_message).
-        return '%s -- "%s"' % (url, title)
+    def command_numstrokes(self, s):
+        return ', '.join([str(self.char_lookup.getStrokeCount(x)) for x in s.decode('utf8')])
+
+    def command_pinyin(self, rest):
+        """Return pinyin of each character."""
+        readings = [u'(' + u', '.join(self.char_lookup.getReadingForCharacter(x, 'Pinyin')) + u')'
+                    for x in rest.decode('utf8')]
+        res = u'; '.join(readings)
+        return res.encode('utf8')
+
+    def command_translate(self, rest):
+        """Translate using CEDICT.
+        TODO:
+            * If you give it a non-phrase group of characters (我妈妈 for
+            example) it doesn't have a single dictionary definition. You should
+            lookup the longest substring possible that returns a definition,
+            shrinking from the right.
+
+            For example: 我妈妈 returns nothing, so you try 我妈 which
+            also returns something. Finally, just 我 returns a definition. Next
+            you look up 妈妈, which returns a valid definition. Rinse and
+            repeat."""
+        res = []
+        for e in self._dict_lookup(rest):
+            foo = u'%s (%s)' % (e.HeadwordSimplified, e.HeadwordTraditional)
+            res.append(u'%s (%s): %s' % (e.HeadwordSimplified,
+                                         e.HeadwordTraditional,
+                                         e.Translation))
+
+        s = u'; '.join(res)
+        return s.encode('utf8')
 
 class MyFirstIRCFactory(protocol.ReconnectingClientFactory):
-    protocol = MyFirstIRCProtocol
+    protocol = FeiJi
     channels = ['#foobartest']
 
 if __name__ == '__main__':

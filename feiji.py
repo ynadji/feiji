@@ -118,7 +118,7 @@ class FeiJi(irc.IRCClient):
 
 class MyFirstIRCFactory(protocol.ReconnectingClientFactory):
     protocol = FeiJi
-    channels = ['#foobartest']
+    channels = ['#Chinese', '#foobartest']
 
 if __name__ == '__main__':
     # This runs the program in the foreground. We tell the reactor to connect

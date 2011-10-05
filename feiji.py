@@ -84,6 +84,9 @@ class FeiJi(irc.IRCClient):
     def _dict_lookup(self, s):
         return self.char_info.searchDictionary(s.decode('utf8'), 'GR')
 
+    def command_help(self, s):
+        return 'https://github.com/ynadji/feiji'
+
     def command_numstrokes(self, s):
         return ', '.join([str(self.char_lookup.getStrokeCount(x)) for x in s.decode('utf8')])
 

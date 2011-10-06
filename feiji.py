@@ -17,6 +17,9 @@ from twisted.application import internet, service
 from cjklib.cjknife import CharacterInfo
 from cjklib.characterlookup import CharacterLookup
 
+sys.path.append('nciku')
+import nciku
+
 HOST, PORT = 'irc.synirc.net', 6667
 
 class FeiJi(irc.IRCClient):
@@ -87,6 +90,9 @@ class FeiJi(irc.IRCClient):
 
     def command_help(self, s):
         return 'https://github.com/ynadji/feiji'
+
+    def command_strokes(self, c):
+        return str(nciku.strokeurl(c.decode('utf8')))
 
     def command_numstrokes(self, s):
         return ', '.join([str(self.char_lookup.getStrokeCount(x)) for x in s.decode('utf8')])

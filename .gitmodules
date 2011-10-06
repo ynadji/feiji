@@ -1,0 +1,3 @@
+[submodule "nciku"]
+	path = nciku
+	url = git://github.com/ynadji/nciku.git

@@ -16,6 +16,7 @@ from twisted.web.client import getPage
 from twisted.application import internet, service
 from cjklib.cjknife import CharacterInfo
 from cjklib.characterlookup import CharacterLookup
+from pytranslate import translate as gtranslate
 
 sys.path.append('nciku')
 import nciku
@@ -124,6 +125,9 @@ class FeiJi(irc.IRCClient):
                                          e.Translation))
 
         s = u'; '.join(res)
+        # If CEDICT doesn't have anything, resort to Google Translate.
+        if s == '':
+            s = 'google: %s' % gtranslate(rest, sl='chinese', tl='english')
         return s.encode('utf8')
 
 class MyFirstIRCFactory(protocol.ReconnectingClientFactory):

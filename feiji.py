@@ -118,16 +118,28 @@ class FeiJi(irc.IRCClient):
             you look up 妈妈, which returns a valid definition. Rinse and
             repeat."""
         res = []
-        for e in self._dict_lookup(rest):
-            foo = u'%s (%s)' % (e.HeadwordSimplified, e.HeadwordTraditional)
-            res.append(u'%s (%s): %s' % (e.HeadwordSimplified,
-                                         e.HeadwordTraditional,
-                                         e.Translation))
+        try:
+            for e in self._dict_lookup(rest):
+                foo = u'%s (%s)' % (e.HeadwordSimplified, e.HeadwordTraditional)
+                res.append(u'%s (%s): %s' % (e.HeadwordSimplified,
+                                             e.HeadwordTraditional,
+                                             e.Translation))
+        # This sometimes occurs when you search for a string in English to
+        # get the Chinese. Ignore it and use Google Translate.
+        except TypeError:
+            pass
 
         s = u'; '.join(res)
         # If CEDICT doesn't have anything, resort to Google Translate.
         if s == '':
-            s = 'google: %s' % gtranslate(rest, sl='chinese', tl='english')
+            try:
+                # If it decodes as ascii, assume it's English.
+                rest.decode('ascii')
+                return 'google: %s' % gtranslate(rest, sl='english', tl='chinese')
+            except UnicodeDecodeError:
+                # Otherwise, it's Chinese.
+                s = 'google: %s' % gtranslate(rest, sl='chinese', tl='english')
+
         return s.encode('utf8')
 
 class MyFirstIRCFactory(protocol.ReconnectingClientFactory):

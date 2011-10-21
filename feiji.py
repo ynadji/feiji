@@ -59,8 +59,6 @@ class FeiJi(irc.IRCClient):
 
         # We need a special case here because we always want to send directly
         # to the user to reduce chan clutter.
-        if command == 'h':
-            return self._send_message(self.shorthelp(), nick)
         if command == 'help':
             return self._send_message(self.longhelp(), nick)
         # Get the function corresponding to the command given.
@@ -111,6 +109,7 @@ class FeiJi(irc.IRCClient):
     def _dict_lookup(self, s):
         return self.char_info.searchDictionary(s.decode('utf8'), 'GR')
 
+    def command_h(self, _): return self.shorthelp()
     def shorthelp(self):
         cmds, names = self._commands()
         return 'Commands: (%s)\n.help for more detailed help.' % ' '.join(['.' + x for x in cmds])

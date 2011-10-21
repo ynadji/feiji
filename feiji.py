@@ -8,6 +8,7 @@
 #
 
 import sys
+from optparse import OptionParser
 import lxml.html
 from twisted.internet import reactor, task, defer, protocol
 from twisted.python import log
@@ -173,15 +174,26 @@ class FeiJi(irc.IRCClient):
         return s.encode('utf8')
 
 class MyFirstIRCFactory(protocol.ReconnectingClientFactory):
+    def __init__(self, channels):
+        self.channels = channels
     protocol = FeiJi
-    #channels = ['#Chinese']
-    channels = ['#foobartest']
 
-if __name__ == '__main__':
+def main():
+    """main function for standalone usage"""
+    usage = "usage: %prog [options] channels"
+    parser = OptionParser(usage=usage)
+
+    (options, args) = parser.parse_args()
+
+    if len(args) < 1:
+        parser.print_help()
+        return 2
+
+    # do stuff
     # This runs the program in the foreground. We tell the reactor to connect
     # over TCP using a given factory, and once the reactor is started, it will
     # open that connection.
-    reactor.connectTCP(HOST, PORT, MyFirstIRCFactory())
+    reactor.connectTCP(HOST, PORT, MyFirstIRCFactory(args))
     # Since we're running in the foreground anyway, show what's happening by
     # logging to stdout.
     log.startLogging(sys.stdout)
@@ -189,8 +201,8 @@ if __name__ == '__main__':
     # done, because this runs the whole twisted mainloop.
     reactor.run()
 
-# This runs the program in the background. __name__ is __builtin__ when you use
-# twistd -y on a python module.
+if __name__ == '__main__':
+    sys.exit(main())
 elif __name__ == '__builtin__':
     # Create a new application to which we can attach our services. twistd wants
     # an application object, which is how it knows what services should be

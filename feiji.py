@@ -29,6 +29,9 @@ class FeiJi(irc.IRCClient):
     char_lookup = CharacterLookup('C')
 
     def signedOn(self):
+        # Hacky way to have a command named "#".
+        setattr(self, 'command_#', lambda rest: self._numstrokes(rest))
+
         # This is called once the server has acknowledged that we sent
         # both NICK and USER.
         for channel in self.factory.channels:
@@ -38,9 +41,9 @@ class FeiJi(irc.IRCClient):
     def privmsg(self, user, channel, message):
         nick, _, host = user.partition('!')
         message = message.strip()
-        if not message.startswith('!'): # not a trigger command
+        if not message.startswith('.'): # not a trigger command
             return # do nothing
-        command, sep, rest = message.lstrip('!').partition(' ')
+        command, sep, rest = message.lstrip('.').partition(' ')
         # Get the function corresponding to the command given.
         func = getattr(self, 'command_' + command, None)
         # Or, if there was no function, ignore the message.
@@ -89,23 +92,28 @@ class FeiJi(irc.IRCClient):
     def _dict_lookup(self, s):
         return self.char_info.searchDictionary(s.decode('utf8'), 'GR')
 
+    def command_h(self, s): return self.command_help(s)
     def command_help(self, s):
         return 'https://github.com/ynadji/feiji'
 
-    def command_strokes(self, c):
+    def command_so(self, c): return self._strokes(c)
+    def _strokes(self, c):
         return str(nciku.strokeurl(c.decode('utf8')))
 
-    def command_numstrokes(self, s):
+    # See def signedOn(self): to see how "command_#" is created.
+    def _numstrokes(self, s):
         return ', '.join([str(self.char_lookup.getStrokeCount(x)) for x in s.decode('utf8')])
 
-    def command_pinyin(self, rest):
+    def command_p(self, rest): return self._pinyin(rest)
+    def _pinyin(self, rest):
         """Return pinyin of each character."""
         readings = [u'(' + u', '.join(self.char_lookup.getReadingForCharacter(x, 'Pinyin')) + u')'
                     for x in rest.decode('utf8')]
         res = u'; '.join(readings)
         return res.encode('utf8')
 
-    def command_translate(self, rest):
+    def command_tr(self, rest): return self._translate(rest)
+    def _translate(self, rest):
         """Translate using CEDICT.
         TODO:
             * If you give it a non-phrase group of characters (我妈妈 for
@@ -144,7 +152,8 @@ class FeiJi(irc.IRCClient):
 
 class MyFirstIRCFactory(protocol.ReconnectingClientFactory):
     protocol = FeiJi
-    channels = ['#Chinese', '#foobartest']
+    #channels = ['#Chinese']
+    channels = ['#foobartest']
 
 if __name__ == '__main__':
     # This runs the program in the foreground. We tell the reactor to connect

@@ -1,27 +1,26 @@
-feiji (飞机) is a bot that helps you learn Chinese!
-feiji listens to a handful of !commands, and responds with answers.
+feiji (飞机) is a bot that helps you learn Chinese! feiji listens to a handful
+of commands, and responds with answers. QUERY messages to feiji are replied in
+directly to the user, while NOTICEs are sent to the channel.
 
-For example:
+Commands:
+    .h/.help: Sends this message to the user
+    .tr:      Translate between Chinese and English using CEDICT/Google Translate
+    .so:      Retrieve stroke order animation from nciku
+    .p:       Print a pinyin reading of characters.
+    .#:       Print the number of strokes for characters.
 
-21:12 <@yacin> !pinyin 我在家吃饭
-21:12 < feiji> yacin, (wǒ); (zài); (gū, jiā, jià, jia, jie); (chī, qī); (fàn)
-21:12 <@yacin> !translate 你好吗
-21:12 < feiji> yacin, 你好吗 (你好嗎): /How are you?/Are you well?/
-21:12 <@yacin> !numstrokes 我爸爸
-21:12 < feiji> yacin, 7, 8, 8
-22:48 < yacin> !strokes 律
-22:48 < feiji> yacin, http://images.nciku.com/stroke_order/25737.swf
-
-!translate isn't perfect yet:
-
-21:13 <@yacin> !translate 我妈妈
-21:13 < feiji> yacin,
-21:13 <@yacin> fails
-21:13 <@yacin> but
-21:13 <@yacin> !translate 我
-21:13 < feiji> yacin, 我 (我): /I/me/my/
-21:13 <@yacin> !translate 妈妈
-21:13 < feiji> yacin, 妈妈 (媽媽): /mama/mommy/mother/CL:個|个[ge4],位[wei4]/
-21:13 <@yacin> works fine
+Examples:
+    <yacin> .tr 聪明
+    <feiji> 聪明 (聰明): /acute (of sight and hearing)/clever/intelligent/bright/smart/
+    <yacin> .tr dinosaur
+    <feiji> 恐龙 (恐龍): /dinosaur/CL:頭|头[tou2]/
+    <yacin> .tr 我爱飞机
+    <feiji> google: I love airplanes
+    <yacin> .so 舞
+    <feiji> http://images.nciku.com/stroke_order/44853.swf
+    <yacin> .p 我的朋友
+    <feiji> (wǒ); (de, dí, dì); (péng); (yǒu, you)
+    <yacin> .# 太多汉字
+    <feiji> 4, 6, 5, 6
 
 For bug reports and feature requests: https://github.com/ynadji/nciku/issues

@@ -18,6 +18,9 @@ from cjklib.cjknife import CharacterInfo
 from cjklib.characterlookup import CharacterLookup
 from pytranslate import translate as gtranslate
 
+# Command leader/prefix
+LEADER = '.'
+
 sys.path.append('nciku')
 import nciku
 
@@ -27,6 +30,14 @@ class FeiJi(irc.IRCClient):
     nickname = 'feiji'
     char_info = CharacterInfo()
     char_lookup = CharacterLookup('C')
+
+    def _commands(self):
+        return zip(*[('h', 'short help'),
+                     ('help', 'long help'),
+                     ('tr', 'translate'),
+                     ('so', 'stroke order'),
+                     ('p', 'pinyin'),
+                     ('#', 'numstrokes')])
 
     def signedOn(self):
         # Hacky way to have a command named "#".
@@ -41,9 +52,16 @@ class FeiJi(irc.IRCClient):
     def privmsg(self, user, channel, message):
         nick, _, host = user.partition('!')
         message = message.strip()
-        if not message.startswith('.'): # not a trigger command
+        if not message.startswith(LEADER): # not a trigger command
             return # do nothing
-        command, sep, rest = message.lstrip('.').partition(' ')
+        command, sep, rest = message.lstrip(LEADER).partition(' ')
+
+        # We need a special case here because we always want to send directly
+        # to the user to reduce chan clutter.
+        if command == 'h':
+            return self._send_message(self.shorthelp(), nick)
+        if command == 'help':
+            return self._send_message(self.longhelp(), nick)
         # Get the function corresponding to the command given.
         func = getattr(self, 'command_' + command, None)
         # Or, if there was no function, ignore the message.
@@ -92,9 +110,13 @@ class FeiJi(irc.IRCClient):
     def _dict_lookup(self, s):
         return self.char_info.searchDictionary(s.decode('utf8'), 'GR')
 
-    def command_h(self, s): return self.command_help(s)
-    def command_help(self, s):
-        return 'https://github.com/ynadji/feiji'
+    def shorthelp(self):
+        cmds, names = self._commands()
+        return 'Commands: (%s)\n.help for more detailed help.' % ' '.join(['.' + x for x in cmds])
+
+    def longhelp(self):
+        with open('README') as f:
+            return f.read()
 
     def command_so(self, c): return self._strokes(c)
     def _strokes(self, c):

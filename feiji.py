@@ -31,6 +31,19 @@ class FeiJi(irc.IRCClient):
     nickname = 'feiji'
     char_info = CharacterInfo()
     char_lookup = CharacterLookup('C')
+    # Pinyin toolkit manual changes, thanks gents!
+    # https://github.com/batterseapower/pinyin-toolkit
+    pinyin_toolkit_lookup = {}
+    with open('pinyin_toolkit_sydict.u8') as f:
+        for line in f:
+            line = line.strip().decode('utf8')
+            # We only want the first three fields
+            trad, simp, pinyin = line.split(' ')[:3]
+            # Strip [] and convert to pinyin with tone marks
+            pinyin = filter(lambda x: x not in '[]', pinyin)
+            pinyin = char_info.convertReading(pinyin, 'Pinyin')
+            pinyin_toolkit_lookup[trad] = pinyin
+            pinyin_toolkit_lookup[simp] = pinyin
 
     def _commands(self):
         return zip(*[('h', 'short help'),
@@ -127,17 +140,31 @@ class FeiJi(irc.IRCClient):
         return ', '.join([str(self.char_lookup.getStrokeCount(x)) for x in s.decode('utf8')])
 
     def _dict_reading_lookup(self, c):
-        for e in self._dict_lookup(c):
-            return e.Reading
-        return c
+        """Perform a reading lookup using CEDICT. Return the readings joined
+        (hopefully there is only one) or the original character if it couldn't
+        be found.
+
+        NOTE: We do .lower() and set() to remove cases like 家 where it returns
+        Jiā and jiā for some reason. This should handle most cases where there's
+        ambiguity, but certainly not all of them. It looks as though cjklib
+        doesn't have a way of resolving this based on context.
+        """
+        return u','.join(set([e.Reading.lower() for e in self._dict_lookup(c)])) or c
 
     def command_p(self, rest): return self._pinyin(rest)
     def _pinyin(self, rest):
         """Return pinyin of each character."""
         rest = rest.decode('utf8')
         def reduce_reading((char, readings)):
-            if len(readings) == 1: return readings[0]
-            else:                  return self._dict_reading_lookup(char)
+            """If a character has multiple cjklib readings, use the fine-tuning
+            dict from pinyin toolkit and CEDICT as a backup."""
+            if len(readings) == 1:
+                return readings[0]
+            else:
+                try:
+                    return self.pinyin_toolkit_lookup[char]
+                except KeyError:
+                    return self._dict_reading_lookup(char)
 
         readings = [self.char_lookup.getReadingForCharacter(x, 'Pinyin') for x in rest]
         res = u' '.join(map(reduce_reading, zip(rest, readings)))

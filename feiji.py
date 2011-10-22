@@ -205,7 +205,7 @@ class FeiJi(irc.IRCClient):
         s = u'; '.join(res)
         # If CEDICT doesn't have anything, resort to Google Translate.
         if s == '':
-            if self.isascii(s):
+            if self.isascii(rest):
                 s = 'google: %s' % gtranslate(rest, sl='english', tl='chinese')
             else:
                 s = 'google: %s' % gtranslate(rest, sl='chinese', tl='english')

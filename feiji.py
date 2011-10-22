@@ -53,6 +53,13 @@ class FeiJi(irc.IRCClient):
                      ('p', 'pinyin'),
                      ('#', 'numstrokes')])
 
+    def isascii(self, s):
+        try:
+            s.decode('ascii')
+            return True
+        except UnicodeDecodeError:
+            return False
+
     def signedOn(self):
         # Hacky way to have a command named "#".
         setattr(self, 'command_#', lambda rest: self._numstrokes(rest))
@@ -198,14 +205,14 @@ class FeiJi(irc.IRCClient):
         s = u'; '.join(res)
         # If CEDICT doesn't have anything, resort to Google Translate.
         if s == '':
-            try:
-                # If it decodes as ascii, assume it's English.
-                rest.decode('ascii')
-                return 'google: %s' % gtranslate(rest, sl='english', tl='chinese')
-            except UnicodeDecodeError:
-                # Otherwise, it's Chinese.
+            if self.isascii(s):
+                s = 'google: %s' % gtranslate(rest, sl='english', tl='chinese')
+            else:
                 s = 'google: %s' % gtranslate(rest, sl='chinese', tl='english')
 
+        # Add pinyin if the query string wasn't ascii
+        if not self.isascii(rest):
+            s = '%s\n%s' % (s, self._pinyin(rest))
         return s.encode('utf8')
 
 class MyFirstIRCFactory(protocol.ReconnectingClientFactory):

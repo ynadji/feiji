@@ -126,12 +126,21 @@ class FeiJi(irc.IRCClient):
     def _numstrokes(self, s):
         return ', '.join([str(self.char_lookup.getStrokeCount(x)) for x in s.decode('utf8')])
 
+    def _dict_reading_lookup(self, c):
+        for e in self._dict_lookup(c):
+            return e.Reading
+        return c
+
     def command_p(self, rest): return self._pinyin(rest)
     def _pinyin(self, rest):
         """Return pinyin of each character."""
-        readings = [u'(' + u', '.join(self.char_lookup.getReadingForCharacter(x, 'Pinyin')) + u')'
-                    for x in rest.decode('utf8')]
-        res = u'; '.join(readings)
+        rest = rest.decode('utf8')
+        def reduce_reading((char, readings)):
+            if len(readings) == 1: return readings[0]
+            else:                  return self._dict_reading_lookup(char)
+
+        readings = [self.char_lookup.getReadingForCharacter(x, 'Pinyin') for x in rest]
+        res = u' '.join(map(reduce_reading, zip(rest, readings)))
         return res.encode('utf8')
 
     def command_tr(self, rest): return self._translate(rest)

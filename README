@@ -12,14 +12,16 @@ Commands:
 Examples:
     <yacin> .tr 聪明
     <feiji> 聪明 (聰明): /acute (of sight and hearing)/clever/intelligent/bright/smart/
+    <feiji> cōng míng
     <yacin> .tr dinosaur
     <feiji> 恐龙 (恐龍): /dinosaur/CL:頭|头[tou2]/
     <yacin> .tr 我爱飞机
     <feiji> google: I love airplanes
+    <feiji> wǒ ài fēi jī
     <yacin> .so 舞
     <feiji> http://images.nciku.com/stroke_order/44853.swf
     <yacin> .p 我的朋友
-    <feiji> (wǒ); (de, dí, dì); (péng); (yǒu, you)
+    <feiji> wǒ de péng yǒu
     <yacin> .# 太多汉字
     <feiji> 4, 6, 5, 6
 

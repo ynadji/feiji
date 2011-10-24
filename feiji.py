@@ -161,7 +161,8 @@ class FeiJi(irc.IRCClient):
     def command_p(self, rest): return self._pinyin(rest)
     def _pinyin(self, rest):
         """Return pinyin of each character."""
-        rest = rest.decode('utf8')
+        # Fix if sentence contains some english '.tr yacin太牛了'
+        rest = filter(lambda x: not self.isascii(x), rest.decode('utf8'))
         def reduce_reading((char, readings)):
             """If a character has multiple cjklib readings, use the fine-tuning
             dict from pinyin toolkit and CEDICT as a backup."""

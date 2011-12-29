@@ -25,4 +25,16 @@ Examples:
     <yacin> .# 太多汉字
     <feiji> 4, 6, 5, 6
 
+Options:
+    If performing a dictionary lookup (a word or common phrase), .tr can take
+    wildcard arguments '_', for a single character wildcard, or '%', for an
+    arbitrary length wildcard, e.g.:
+
+    < yacin> .tr _日_乐
+    < feiji> yacin, 生日快乐 (生日快樂): /Happy birthday/
+    < yacin> .tr %快乐
+    < feiji> yacin, 圣诞快乐 (聖誕快樂): /Merry Christmas/; 快乐 (快樂):
+    /happy/merry/; 生日快乐 (生日快樂): /Happy birthday/; 新年快乐
+    (新年快樂): /Happy New Year!/; 愚人节快乐 (愚人節快樂): /April Fool!/
+
 For bug reports and feature requests: https://github.com/ynadji/feiji/issues
